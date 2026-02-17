@@ -1,141 +1,99 @@
-# Fiverr Starter API
+# Short Link Service (Fiverr Coding Test)
 
-Hello World API with **TypeScript**, **SQL Server**, and **TypeORM**, built with SOLID principles and ready to extend during the coding test.
-
----
-
-## What you need before running the API
-
-- **Node.js 18+** (to run the app)
-- **SQL Server** (the app connects to it on startup). Either:
-  - installed locally, or
-  - run via Docker (see below), or
-  - use **Docker Compose** to run both the API and SQL Server (no local Node or SQL Server needed)
+TypeScript + SQL Server + TypeORM API: short link generation, redirect with fraud validation, and paginated stats with monthly breakdown.
 
 ---
 
-## Quick start (after clone)
+## Setup
 
-Do these in order.
+### Prerequisites
 
-### 1. Install dependencies
+- **Node.js 18+**
+- **SQL Server** (local or Docker)
+- **Docker Desktop** (optional, for running SQL Server or full stack)
 
-```bash
-npm install
-```
+### Steps
 
-### 2. Configure the app (required)
+1. **Clone and install**
+   ```bash
+   git clone <repo-url>
+   cd fiverr-starter-api
+   npm install
+   ```
 
-The app reads configuration from a `.env` file. Create it from the example and set at least the **database** settings so the API can connect to SQL Server.
+2. **Environment**
+   ```bash
+   copy .env.example .env
+   ```
+   Edit `.env`: set `DB_SERVER`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_TRUST_CERTIFICATE=true` to match your SQL Server.
 
-```bash
-copy .env.example .env
-```
+3. **Start SQL Server** (if using Docker)
+   ```bash
+   npm run db
+   ```
 
-Then edit `.env`. The important part is **SQL Server connection** — the values must match a SQL Server instance that is (or will be) running:
+4. **Run the API**
+   ```bash
+   npm run dev
+   ```
+   Or full stack in Docker with hot reload: `npm run dev:docker`.
 
-| Variable | Meaning | Example |
-|----------|---------|---------|
-| `DB_SERVER` | SQL Server host | `localhost` (or `mssql` when using Docker Compose) |
-| `DB_PORT` | Port | `1433` |
-| `DB_USER` | Login | `sa` |
-| `DB_PASSWORD` | Password | Must match the server’s SA password |
-| `DB_NAME` | Database name | `master` |
-| `DB_TRUST_CERTIFICATE` | Use for local/dev (e.g. self-signed cert) | `true` |
+### API base
 
-You can leave `PORT` and `NODE_ENV` as in `.env.example` unless you need to change them.
+- Base URL: `http://localhost:3000` (or set `BASE_URL` in `.env`)
 
-### 3. Have SQL Server running
+---
 
-The API will not start successfully until it can connect to SQL Server. Choose one:
+## Architecture
 
-- **SQL Server in Docker, app runs locally (recommended for development)**  
-  Start **only** SQL Server in Docker Desktop (one command), then run the app with `npm run dev` so it updates live when you change code.
+- **Layers (SOLID):** Config → DB (TypeORM DataSource) → Entities → Repositories → Services → Routes → Express app.
+- **Dependency injection:** Repositories and services are wired in `server.ts` and receive dependencies via constructors; interfaces allow testing with mocks.
+- **Single responsibility:** Each module has one role (e.g. `LinkRepository` for link persistence, `FraudValidationService` for the 500ms/50% simulation).
+- **Open/closed:** New features add new entities/repos/services/routes without changing existing ones.
 
-  ```bash
-  npm run db
-  ```
+### Main components
 
-  Then in `.env` use (the default in `.env.example` matches this):
+| Layer       | Role |
+|------------|------|
+| `entities/` | TypeORM entities: `Link` (targetUrl, shortCode), `Click` (linkId, createdAt, earnings) |
+| `repositories/` | Data access: `LinkRepository`, `ClickRepository` (including stats aggregation) |
+| `services/` | Business logic: `LinkService` (create short link, resolve+record click, stats), `FraudValidationService` (500ms, 50% pass) |
+| `routes/`   | HTTP: POST /links, GET /stats, GET /:short_code (redirect) |
+| `config/`   | Env (port, baseUrl, DB, NODE_ENV) |
+| `db/`       | TypeORM DataSource, init/close with retry |
 
-  - `DB_SERVER=localhost`
-  - `DB_PORT=1433`
-  - `DB_USER=sa`
-  - `DB_PASSWORD=YourStrong@Passw0rd`
-  - `DB_NAME=master`
-  - `DB_TRUST_CERTIFICATE=true`
+### Database
 
-  To stop the database later: `npm run db:down`.
+- **Links:** id, targetUrl, shortCode (unique), createdAt.
+- **Clicks:** id, linkId (FK), createdAt, earnings (0 or 0.05). TypeORM `synchronize: true` in development creates/updates tables.
 
-- **SQL Server already installed on your machine**  
-  Start it (e.g. Windows Service or your usual way). Ensure the host/port/user/password in `.env` match this instance.
+---
 
-- **Everything in Docker (API + SQL Server)**  
-  You do **not** need to install Node or SQL Server. One command brings up the full stack **with hot reload**:
+## Testing
 
-  ```bash
-  npm run dev:docker
-  ```
+- **Manual:** Use Postman or cURL:
+  - `POST /links` with `{ "url": "https://example.com" }` → short URL; repeat with same URL → same short URL.
+  - `GET /<short_code>` → redirects to target and records a click (fraud check 500ms, 50% earns $0.05).
+  - `GET /stats?page=1&limit=10` → paginated list with `url`, `total_clicks`, `total_earnings`, `monthly_breakdown`.
+- **Health:** `GET /`, `GET /health` for sanity checks.
+- **Unit/integration tests:** Not implemented due to time; structure (interfaces, DI) is ready for adding Jest + mocks.
 
-  The API runs inside Docker with your code mounted; saving a file restarts the server. Use `Ctrl+C` to stop, or `docker compose down` in another terminal.
+---
 
-### 4. Run the API
+## AI environment setup
 
-- If you chose **SQL Server in Docker + app locally:** run `npm run dev` — the app will start and **reload automatically** when you change code.
-- If you chose **Everything in Docker:** the API is already running (see step 3).
+- **Cursor / VS Code** with an AI assistant (e.g. Cursor, GitHub Copilot, or Claude Code) was used during development.
+- **Recommended:** Install and sign in to your preferred AI coding tool before the session; ensure the project opens at the repo root so the model has full context.
+- **Prompting:** Use clear, concrete prompts (e.g. “add POST /links that accepts url and returns shortUrl; if same url exists return existing”) and reference existing patterns (e.g. “same structure as LinkService”) so the AI stays consistent with the architecture.
 
-Otherwise: `npm run dev`, or `npm run build` then `npm start`.
+---
 
-### 5. Sanity check
+## Endpoints summary
 
-- **GET http://localhost:3000/** — returns `{ "message": "Hello World" }`
-- **GET http://localhost:3000/health** — returns JSON with `database: "connected"` and status 200
-- **POST http://localhost:3000/greetings** — body `{ "name": "Your Name" }` inserts a row into the DB; optional `"message": "..."` overrides the default "Hello World"
-- **GET http://localhost:3000/greetings** — returns the list of greetings (so you can confirm data in the DB, or check in SSMS under **master → Tables → Greetings**)
-
-If these work, the project is configured correctly.
-
-## Connect with SSMS (view the database)
-
-When SQL Server is running (e.g. after `npm run db` or `npm run dev:docker`), you can open it in **SQL Server Management Studio (SSMS)**:
-
-1. Open SSMS.
-2. **Server name:** `localhost` or `localhost,1433` (same machine, port 1433).
-3. **Authentication:** SQL Server Authentication.
-4. **Login:** `sa`
-5. **Password:** the value of `DB_PASSWORD` from your `.env` (e.g. `YourStrong@Passw0rd` if you didn’t change it).
-6. Click **Connect**.
-
-In Object Explorer: **Databases → master** (or the database name from `DB_NAME` in `.env`). There you can browse tables, run queries, and view data.
-
-**What you see in the DB:** In development, TypeORM creates a **`Greetings`** table (from the `Greeting` entity). Use **POST /greetings** with body `{ "name": "Your Name" }` to insert a row; use **GET /greetings** to list them. In SSMS, open **Databases → master → Tables → Greetings** to see the data (columns: `id`, `name`, `message`, `createdAt`).
-
-## Project structure (SOLID + TypeORM)
-
-```
-src/
-├── config/          # env, settings
-├── db/              # TypeORM DataSource (SQL Server), init/close with retry
-├── entities/        # TypeORM entities (add one per table when you add features)
-├── repositories/    # DB access (use DataSource / Repository<T>)
-├── services/        # Business logic (depends on repositories via interfaces)
-├── routes/          # HTTP endpoints (depends on services)
-├── app.ts           # Express setup (inject services)
-└── server.ts        # Entry: DataSource → repos → services → app
-```
-
-- **Adding a new feature:** Add an **entity** in `entities/`, a **repository** (interface + class using `DataSource.getRepository(Entity)`), **service**, **routes**, and wire in `app.ts` and `server.ts`. See `docs/ADDING_A_FEATURE.md`.
-- **When you get the assignment in the test:** Follow the step-by-step checklist in **`docs/WHEN_YOU_GET_THE_ASSIGNMENT.md`** (read requirements → add entities one by one → wire → test).
-- **Testing:** You can inject mocks of `IHealthRepository` / `IHealthService` without touching the DB.
-
-## Scripts
-
-| Script | Description |
-|--------|-------------|
-| `npm run db` | Start **only** SQL Server in Docker (Docker Desktop). Use this then `npm run dev` for local dev with live reload |
-| `npm run db:down` | Stop the SQL Server container started by `npm run db` |
-| `npm run dev` | Run API locally with hot reload (tsx watch); requires Node and SQL Server running |
-| `npm run dev:docker` | **One command:** API + SQL Server in Docker with hot reload — no local Node/SQL Server needed |
-| `npm run build` | Compile to `dist/` |
-| `npm start` | Run `dist/server.js` |
-| `npm run typecheck` | Type check without building |
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | / | Hello World |
+| GET | /health | API + DB health |
+| POST | /links | Create short link (body: `{ "url": "..." }`). Same URL returns existing. |
+| GET | /stats | Paginated stats (`?page=1&limit=10`): url, total_clicks, total_earnings, monthly_breakdown |
+| GET | /:short_code | Redirect to target URL and record click (fraud validation: 500ms, 50% credit $0.05) |
