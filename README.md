@@ -1,6 +1,6 @@
 # Short Link Service (Fiverr Coding Test)
 
-TypeScript + SQL Server + TypeORM API: short link generation, redirect with fraud validation, and paginated stats with monthly breakdown.
+TypeScript + SQL Server + TypeORM API: short link generation, redirect with fraud validation, paginated stats with monthly breakdown, and Vitest automated tests.
 
 ---
 
@@ -71,12 +71,20 @@ TypeScript + SQL Server + TypeORM API: short link generation, redirect with frau
 
 ## Testing
 
+- **Automated:** Vitest unit + integration tests:
+  ```bash
+  npm test           # run once
+  npm run test:watch # watch mode
+  npm run test:coverage
+  ```
+  Covers: short-code generation, fraud validation, `LinkService` (create, resolve, stats), and HTTP routes (health, POST /links, GET /stats, GET /:short_code).
+
 - **Manual:** Use Postman or cURL:
   - `POST /links` with `{ "url": "https://example.com" }` → short URL; repeat with same URL → same short URL.
   - `GET /<short_code>` → redirects to target and records a click (fraud check 500ms, 50% earns $0.05).
   - `GET /stats?page=1&limit=10` → paginated list with `url`, `total_clicks`, `total_earnings`, `monthly_breakdown`.
 - **Health:** `GET /`, `GET /health` for sanity checks.
-- **Unit/integration tests:** Not implemented due to time; structure (interfaces, DI) is ready for adding Jest + mocks.
+- **Unit/integration tests:** Implemented with Vitest + mocks; structure (interfaces, DI) enables isolated unit tests.
 
 ---
 

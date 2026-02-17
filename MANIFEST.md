@@ -11,12 +11,11 @@
   - `monthly_breakdown`: array of `{ month: "MM/yyyy", earnings }` (lifetime totals plus monthly aggregation).
 - **Health:** GET `/` and GET `/health` for connectivity and DB check.
 - **Tech:** TypeScript, Express, TypeORM, SQL Server. SOLID-style layers (entities, repositories, services, routes). Env-based config, retry on DB connect.
+- **Automated tests:** Vitest unit + integration tests (`npm test`). Covers short-code generation, fraud validation, LinkService (create, resolve, stats), and HTTP routes. 27 tests; mocks used for repositories and services.
 
 ---
 
 ## What is missing
-
-- **Automated tests:** No Jest (or other) unit/integration tests. The code is structured for testability (interfaces, DI) but tests were not implemented in the timebox.
 - **Validation:** Target URL is not validated as a proper URL (e.g. no `new URL()` or schema check); only non-empty string is required.
 - **Rate limiting / security:** No rate limiting or auth; suitable for a timed exercise only.
 - **Migrations:** Tables are created/updated via TypeORM `synchronize: true` in development only; no production migrations or versioned schema.
