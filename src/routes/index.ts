@@ -1,2 +1,2 @@
 export { createHealthRoutes } from "./health.routes.js";
-export { createGreetingRoutes } from "./greeting.routes.js";
+export { createLinksRoutes } from "./links.routes.js";

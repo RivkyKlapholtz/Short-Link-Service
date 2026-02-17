@@ -1,16 +1,17 @@
 import express, { json } from "express";
-import { createHealthRoutes, createGreetingRoutes } from "./routes/index.js";
-import type { IHealthService, IGreetingService } from "./services/index.js";
+import { createHealthRoutes, createLinksRoutes } from "./routes/index.js";
+import type { IHealthService } from "./services/index.js";
+import type { ILinkService } from "./services/link.service.js";
 
 export function createApp(
   healthService: IHealthService,
-  greetingService: IGreetingService
+  linkService: ILinkService
 ): express.Express {
   const app = express();
   app.use(json());
 
   app.use("/", createHealthRoutes(healthService));
-  app.use("/greetings", createGreetingRoutes(greetingService));
+  app.use("/", createLinksRoutes(linkService));
 
   return app;
 }
