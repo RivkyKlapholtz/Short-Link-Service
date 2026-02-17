@@ -16,8 +16,8 @@ TypeScript + SQL Server + TypeORM API: short link generation, redirect with frau
 
 1. **Clone and install**
    ```bash
-   git clone <repo-url>
-   cd fiverr-starter-api
+   git clone https://github.com/RivkyKlapholtz/Short-Link-Service.git
+   cd Short-Link-Service
    npm install
    ```
 
