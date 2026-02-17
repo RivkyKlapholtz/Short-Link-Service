@@ -1,7 +1,8 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
 import { env } from "../config/index.js";
-import { Greeting } from "../entities/Greeting.js";
+import { Link } from "../entities/Link.js";
+import { Click } from "../entities/Click.js";
 
 const MAX_RETRIES = 10;
 const RETRY_DELAY_MS = 3000;
@@ -18,7 +19,7 @@ export const AppDataSource = new DataSource({
     trustServerCertificate: env.db.trustCertificate,
     enableArithAbort: true,
   },
-  entities: [Greeting],
+  entities: [Link, Click],
   migrations: [],
   synchronize: env.nodeEnv === "development",
   logging: env.nodeEnv === "development",
