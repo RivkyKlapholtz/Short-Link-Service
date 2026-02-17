@@ -1,0 +1,12 @@
+# Development: API runs with "npm run dev" and your code is mounted as a volume.
+# Code changes apply without rebuilding. Use: docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+
+services:
+  api:
+    build: .
+    volumes:
+      - .:/app
+      - /app/node_modules   # keep container's node_modules, don't overwrite with host
+    command: npm run dev
+    environment:
+      NODE_ENV: development

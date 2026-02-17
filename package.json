@@ -1,0 +1,36 @@
+{
+  "name": "fiverr-starter-api",
+  "version": "1.0.0",
+  "description": "Hello World API with TypeScript & SQL Server - SOLID, ready for Fiverr coding test",
+  "type": "module",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "tsx watch src/server.ts",
+    "dev:docker": "docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build",
+    "db": "docker compose up -d mssql",
+    "db:down": "docker compose stop mssql",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "mssql": "^11.0.1",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.20"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/mssql": "^9.1.5",
+    "@types/node": "^22.9.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
